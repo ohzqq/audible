@@ -1,7 +1,6 @@
 package audible
 
 import (
-	"fmt"
 	"testing"
 )
 
@@ -96,10 +95,14 @@ func TestGetFromURL(t *testing.T) {
 	for _, test := range testURLs {
 		r, err := Products().URL(test)
 		if err != nil {
-			fmt.Printf("%v\n", err)
-		}
-		if len(r.Products) < 1 {
-			fmt.Printf("has %d results, expected at least one\n", len(r.Products))
+			if err.Error() == "malformed url" {
+				t.Logf("%v\n", err)
+				if len(r.Products) < 1 {
+					t.Logf("has %d results, expected at least one\n", len(r.Products))
+				}
+			} else {
+				t.Errorf("%v: %v\n", err, test)
+			}
 		}
 	}
 }

@@ -33,7 +33,7 @@ func TestParseHost(t *testing.T) {
 	for _, test := range hostTests {
 		h, err := ParseHost(test.parts)
 		if err != nil {
-			t.Log(err)
+			t.Logf("parse host %v\n", err)
 		}
 		if h.String() != test.host.String() {
 			t.Errorf("input %v: output %#v != expected %v", test.parts, h, test.host)
