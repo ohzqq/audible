@@ -1,13 +1,11 @@
 package cmd
 
 import (
-	"encoding/json"
 	"log"
-	"os"
 
 	"github.com/ohzqq/audible"
-	"github.com/ohzqq/audible/tui"
-	"github.com/ohzqq/cdb"
+	"github.com/ohzqq/srch"
+	"github.com/ohzqq/srch/ui"
 	"github.com/spf13/cobra"
 )
 
@@ -36,39 +34,21 @@ var searchCmd = &cobra.Command{
 			prod.Title(flagTitle)
 		}
 
-		r, err := prod.Get()
+		idx := srch.New("field=title").Index(prod.Search())
+
+		app := ui.New(idx)
+		sel, err := app.Run()
 		if err != nil {
 			log.Fatal(err)
 		}
 
-		l := tui.New(r)
-		books := l.Run()
+		if sel == nil {
+			println("no results.")
+			return
+		}
 
-		processProducts(books)
+		processResults(sel.Data...)
 	},
-}
-
-func saveResults(products *audible.ProductsResponse) {
-	d, err := json.Marshal(products)
-	if err != nil {
-		log.Fatal(err)
-	}
-	err = os.WriteFile("search-results.json", d, 0644)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-}
-
-func pickResult(products []audible.Product) {
-	var items []string
-	var books []cdb.Book
-	for _, p := range products {
-		b := p.ToBook()
-		books = append(books, b)
-		items = append(items, b.Title)
-	}
-
 }
 
 func init() {

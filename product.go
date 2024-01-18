@@ -55,21 +55,18 @@ func (p *ProductsRequest) Search() []map[string]any {
 	return res.BookMap()
 }
 
-func (p *ProductsRequest) URL(u string) (*ProductsResponse, error) {
+func (p *ProductsRequest) URL(u string) (map[string]any, error) {
 	_, err := p.ParseURL(u)
 	if err != nil {
-		return &ProductsResponse{}, err
+		return map[string]any{}, err
 	}
 
 	r, err := p.Get()
 	if err != nil {
-		return r, err
+		return map[string]any{}, err
 	}
 
-	r.Products = []Product{r.Product}
-	r.Product = Product{}
-
-	return r, nil
+	return r.Product.ToBook().StringMap(), nil
 }
 
 func (p *ProductsRequest) SearchParams() url.Values {
@@ -83,7 +80,6 @@ func (p *ProductsRequest) Get() (*ProductsResponse, error) {
 	if err != nil {
 		return res, err
 	}
-	println(p.String())
 
 	err = json.Unmarshal(d, &res)
 	if err != nil {

@@ -1,17 +1,21 @@
 package cmd
 
 import (
+	"encoding/json"
+	"fmt"
 	"io"
 	"log"
 	"net/http"
 	"os"
+	"strings"
 
+	"github.com/BurntSushi/toml"
 	"github.com/danielgtaylor/casing"
 	"github.com/ohzqq/audbk"
 	"github.com/ohzqq/audible"
 	"github.com/ohzqq/avtools/cue"
-	"github.com/ohzqq/cdb"
 	"github.com/spf13/cobra"
+	"gopkg.in/yaml.v3"
 )
 
 var (
@@ -24,9 +28,9 @@ var (
 
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
-	Use:   "urmeta",
-	Short: "scrape book metadata",
-	Long:  `scrape book/work metadata from audible and ao3`,
+	Use:   "audible",
+	Short: "scrape audible metadata",
+	Long:  `scrape book/work metadata from audible`,
 }
 
 // Execute adds all child commands to the root command and sets flags appropriately.
@@ -46,45 +50,76 @@ func init() {
 	rootCmd.PersistentFlags().BoolVarP(&withChapters, "with-chapters", "c", false, "don't write cover to disk")
 }
 
-func processProducts(prods []audible.Product) {
-	var enc cdb.EncoderInit
+func processResults(res ...map[string]any) {
+	for _, r := range res {
+		if !noMeta {
+			println(r["title"].(string))
+			name := casing.Snake(r["title"].(string))
+
+			err := writeMetaFile(r, name)
+			if err != nil {
+				log.Fatal(err)
+			}
+
+			err = writeFFMeta(r, name)
+			if err != nil {
+				log.Fatal(err)
+			}
+
+			if !noCover {
+				if c, ok := r["cover"]; ok {
+					getCover(name+".jpg", c.(string))
+				}
+			}
+
+			if withChapters {
+				if ident, ok := r["identifiers"]; ok {
+					var asin string
+					for _, id := range ident.([]string) {
+						if strings.HasPrefix(id, "asin:") {
+							asin = strings.TrimPrefix(id, "asin:")
+						}
+					}
+					getChaps(name+".cue", asin)
+				}
+			}
+		}
+	}
+}
+
+func writeFFMeta(r map[string]any, name string) error {
+	ff := audbk.NewFFMeta()
+	audbk.BookToFFMeta(ff, r)
+
+	ffm, err := os.Create(name + ".ini")
+	if err != nil {
+		return fmt.Errorf("write init error: %w\n", err)
+	}
+	defer ffm.Close()
+	ff.WriteTo(ffm)
+
+	return nil
+}
+
+func writeMetaFile(r map[string]any, name string) error {
+	var err error
+
+	mf, err := os.Create(name + flagExt)
+	defer mf.Close()
+
 	switch flagExt {
 	case ".yaml":
-		enc = cdb.EncodeYAML
+		err = yaml.NewEncoder(mf).Encode(r)
 	case ".json":
-		enc = cdb.EncodeJSON
+		err = json.NewEncoder(mf).Encode(r)
 	case ".toml":
-		enc = cdb.EncodeTOML
+		err = toml.NewEncoder(mf).Encode(r)
 	}
-	for _, prod := range prods {
-		book := prod.ToBook()
-		println(book.Title)
-		name := casing.Camel(book.Title)
-		if !noMeta {
-			s := cdb.NewSerializer(&book, cdb.EditableOnly()).Encoder(enc)
-			mf, err := os.Create(name + flagExt)
-			if err != nil {
-				log.Fatal(err)
-			}
-			defer mf.Close()
-			s.WriteFile(name)
 
-			ff := audbk.NewFFMeta()
-			audbk.BookToFFMeta(ff, book.StringMap())
-			ffm, err := os.Create(name + ".ini")
-			if err != nil {
-				log.Fatal(err)
-			}
-			defer ffm.Close()
-			ff.WriteTo(ffm)
-		}
-		if !noCover {
-			getCover(name+".jpg", book.Cover)
-		}
-		if withChapters {
-			getChaps(name+".cue", prod.Asin)
-		}
+	if err != nil {
+		return fmt.Errorf("write meta file err %w\n", err)
 	}
+	return nil
 }
 
 func getChaps(name, asin string) {

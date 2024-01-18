@@ -15,9 +15,6 @@ func Search(s string) []map[string]any {
 	p := Products()
 	p.Keywords(s)
 	data := p.Search()
-	//for _, d := range data {
-	//  fmt.Printf("%+v\n", d)
-	//}
 	return data
 }
 

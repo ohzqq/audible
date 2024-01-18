@@ -15,6 +15,7 @@ require (
 )
 
 require (
+	github.com/BurntSushi/toml v1.3.2 // indirect
 	github.com/Masterminds/squirrel v1.5.4 // indirect
 	github.com/RoaringBitmap/roaring v1.7.0 // indirect
 	github.com/atotto/clipboard v0.1.4 // indirect
