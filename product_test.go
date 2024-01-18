@@ -2,6 +2,9 @@ package audible
 
 import (
 	"testing"
+
+	"github.com/ohzqq/srch"
+	"github.com/ohzqq/srch/ui"
 )
 
 type searchTest struct {
@@ -22,6 +25,18 @@ var searchTests = []searchTest{
 		kw:   []string{"red", "fish"},
 		want: "keywords=red+fish",
 	},
+}
+
+func TestSearchIndex(t *testing.T) {
+	qs := "amy lane fish"
+	data := Search(qs)
+	idx := srch.New("field=title").Index(data)
+	app := ui.New(idx)
+	sel, err := app.Run()
+	if err != nil {
+		t.Error(err)
+	}
+	println(sel.Len())
 }
 
 func TestNewSearch(t *testing.T) {

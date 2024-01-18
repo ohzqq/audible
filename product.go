@@ -44,18 +44,8 @@ func Products() *ProductsRequest {
 	return req
 }
 
-func (p *ProductsRequest) Search(s string) []map[string]any {
+func (p *ProductsRequest) Search() []map[string]any {
 	var data []map[string]any
-
-	q, err := url.ParseQuery(s)
-	if err != nil {
-		return data
-	}
-	for k, v := range GetSearchParams(q) {
-		for _, a := range v {
-			p.AddParam(k, a)
-		}
-	}
 
 	res, err := p.Get()
 	if err != nil {
@@ -93,6 +83,7 @@ func (p *ProductsRequest) Get() (*ProductsResponse, error) {
 	if err != nil {
 		return res, err
 	}
+	println(p.String())
 
 	err = json.Unmarshal(d, &res)
 	if err != nil {

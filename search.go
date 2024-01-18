@@ -11,6 +11,16 @@ var queryFields = []string{
 	"title",
 }
 
+func Search(s string) []map[string]any {
+	p := Products()
+	p.Keywords(s)
+	data := p.Search()
+	//for _, d := range data {
+	//  fmt.Printf("%+v\n", d)
+	//}
+	return data
+}
+
 func GetSearchParams(vals url.Values) url.Values {
 	params := make(url.Values)
 	for _, f := range queryFields {
