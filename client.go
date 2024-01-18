@@ -126,6 +126,10 @@ func (r *Request) Keywords(kw ...string) *Request {
 	return r
 }
 
+func (r *Request) EncodeSearch() string {
+	return r.Query.Query.Encode()
+}
+
 func MarketFromHost(host string) string {
 	return strings.TrimPrefix(path.Ext(host), ".")
 }

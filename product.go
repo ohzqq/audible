@@ -3,6 +3,7 @@ package audible
 import (
 	"encoding/json"
 	"fmt"
+	"net/url"
 	"strings"
 	"time"
 
@@ -43,8 +44,8 @@ func Products() *ProductsRequest {
 	return req
 }
 
-func (p *ProductsRequest) Search(s *Params) (*ProductsResponse, error) {
-	for k, v := range s.params {
+func (p *ProductsRequest) Search(s url.Values) (*ProductsResponse, error) {
+	for k, v := range s {
 		for _, a := range v {
 			p.AddParam(k, a)
 		}
