@@ -36,50 +36,41 @@ type Product struct {
 	ChapterInfo
 }
 
-type Search struct {
-	params url.Values
-}
-
 func Products() *ProductsRequest {
-	req := &ProductsRequest{Request: newRequest()}
+	req := &ProductsRequest{Request: NewRequest()}
 	req.SetParam("response_groups", responseGroups[products])
 	req.AppendPath(products)
 	req.NumResults(50)
 	return req
 }
 
-func NewSearch(kw ...string) *Search {
-	s := &Search{params: make(url.Values)}
-	if len(kw) > 0 {
-		s.params.Set("keywords", strings.Join(kw, " "))
+func (p *ProductsRequest) Search() []map[string]any {
+	var data []map[string]any
+
+	res, err := p.Get()
+	if err != nil {
+		return data
 	}
-	return s
+
+	return res.BookMap()
 }
 
-func (p *ProductsRequest) Search(s *Search) (*ProductsResponse, error) {
-	for k, v := range s.params {
-		for _, a := range v {
-			p.AddParam(k, a)
-		}
-	}
-	return p.Get()
-}
-
-func (p *ProductsRequest) URL(u string) (*ProductsResponse, error) {
+func (p *ProductsRequest) URL(u string) (map[string]any, error) {
 	_, err := p.ParseURL(u)
 	if err != nil {
-		return &ProductsResponse{}, err
+		return map[string]any{}, err
 	}
 
 	r, err := p.Get()
 	if err != nil {
-		return r, err
+		return map[string]any{}, err
 	}
 
-	r.Products = []Product{r.Product}
-	r.Product = Product{}
+	return r.Product.ToBook().StringMap(), nil
+}
 
-	return r, nil
+func (p *ProductsRequest) SearchParams() url.Values {
+	return GetSearchParams(p.Query.Query)
 }
 
 func (p *ProductsRequest) Get() (*ProductsResponse, error) {
@@ -98,33 +89,20 @@ func (p *ProductsRequest) Get() (*ProductsResponse, error) {
 	return res, nil
 }
 
-func (s *Search) Title(kw ...string) *Search {
-	if len(kw) > 0 {
-		s.params.Set("title", strings.Join(kw, " "))
+func (p *ProductsResponse) Books() []cdb.Book {
+	books := make([]cdb.Book, len(p.Products))
+	for i, prod := range p.Products {
+		books[i] = prod.ToBook()
 	}
-	return s
+	return books
 }
 
-func (s *Search) Author(kw ...string) *Search {
-	if len(kw) > 0 {
-		s.params.Set("author", strings.Join(kw, " "))
+func (p *ProductsResponse) BookMap() []map[string]any {
+	books := make([]map[string]any, len(p.Products))
+	for i, prod := range p.Products {
+		books[i] = prod.ToBook().StringMap()
 	}
-	return s
-}
-
-func (s *Search) Narrator(kw ...string) *Search {
-	if len(kw) > 0 {
-		s.params.Set("narrator", strings.Join(kw, " "))
-	}
-	return s
-}
-
-func (s *Search) Encode() string {
-	return s.params.Encode()
-}
-
-func (s *Search) String() string {
-	return s.params.Encode()
+	return books
 }
 
 func (p Product) ToBook() cdb.Book {

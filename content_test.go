@@ -28,7 +28,6 @@ func TestContentURL(t *testing.T) {
 	tu := curl()
 	tu.Path = path.Join(tu.Path, asinTest, "metadata")
 	o := tu.String()
-	println(o)
 	if q := req.String(); q != o {
 		t.Errorf("req query %v != endpoint %v", q, o)
 	}

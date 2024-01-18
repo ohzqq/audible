@@ -38,7 +38,7 @@ type Chapter struct {
 }
 
 func Content() *ContentRequest {
-	req := &ContentRequest{Request: newRequest()}
+	req := &ContentRequest{Request: NewRequest()}
 	req.SetParam("response_groups", responseGroups[content])
 	req.AppendPath(content)
 	return req

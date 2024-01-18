@@ -19,7 +19,7 @@ var urlCmd = &cobra.Command{
 		if err != nil {
 			log.Fatal(err)
 		}
-		processProducts(r.Products)
+		processResults(r)
 	},
 }
 
