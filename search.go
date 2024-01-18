@@ -2,7 +2,6 @@ package audible
 
 import (
 	"net/url"
-	"slices"
 )
 
 var queryFields = []string{
@@ -14,9 +13,9 @@ var queryFields = []string{
 
 func GetSearchParams(vals url.Values) url.Values {
 	params := make(url.Values)
-	for k, v := range vals {
-		if slices.Contains(queryFields, k) {
-			params[k] = v
+	for _, f := range queryFields {
+		if v, ok := vals[f]; ok {
+			params[f] = v
 		}
 	}
 	return params

@@ -44,13 +44,25 @@ func Products() *ProductsRequest {
 	return req
 }
 
-func (p *ProductsRequest) Search(s url.Values) (*ProductsResponse, error) {
-	for k, v := range s {
+func (p *ProductsRequest) Search(s string) []map[string]any {
+	var data []map[string]any
+
+	q, err := url.ParseQuery(s)
+	if err != nil {
+		return data
+	}
+	for k, v := range GetSearchParams(q) {
 		for _, a := range v {
 			p.AddParam(k, a)
 		}
 	}
-	return p.Get()
+
+	res, err := p.Get()
+	if err != nil {
+		return data
+	}
+
+	return res.BookMap()
 }
 
 func (p *ProductsRequest) URL(u string) (*ProductsResponse, error) {
@@ -89,6 +101,23 @@ func (p *ProductsRequest) Get() (*ProductsResponse, error) {
 
 	return res, nil
 }
+
+func (p *ProductsResponse) Books() []cdb.Book {
+	books := make([]cdb.Book, len(p.Products))
+	for i, prod := range p.Products {
+		books[i] = prod.ToBook()
+	}
+	return books
+}
+
+func (p *ProductsResponse) BookMap() []map[string]any {
+	books := make([]map[string]any, len(p.Products))
+	for i, prod := range p.Products {
+		books[i] = prod.ToBook().StringMap()
+	}
+	return books
+}
+
 func (p Product) ToBook() cdb.Book {
 	book := cdb.Book{
 		EditableFields: cdb.EditableFields{
