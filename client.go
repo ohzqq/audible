@@ -39,6 +39,7 @@ type Request struct {
 	Asin     string
 	host     host
 	params   url.Values
+	search   url.Values
 	*url.URL
 	*Query
 }
@@ -51,7 +52,8 @@ type Response struct {
 
 func newRequest() *Request {
 	req := &Request{
-		Query: New(),
+		Query:  New(),
+		search: make(url.Values),
 	}
 	req.SubDomain(apiSub)
 	req.Domain(domain)
@@ -94,6 +96,34 @@ func (req *Request) ParseURL(uri string) (*Request, error) {
 	req.TLD(MarketFromHost(u.Host))
 
 	return req, nil
+}
+
+func (r *Request) Title(kw ...string) *Request {
+	if len(kw) > 0 {
+		r.AddParam("title", strings.Join(kw, " "))
+	}
+	return r
+}
+
+func (r *Request) Author(kw ...string) *Request {
+	if len(kw) > 0 {
+		r.AddParam("author", strings.Join(kw, " "))
+	}
+	return r
+}
+
+func (r *Request) Narrator(kw ...string) *Request {
+	if len(kw) > 0 {
+		r.AddParam("narrator", strings.Join(kw, " "))
+	}
+	return r
+}
+
+func (r *Request) Keywords(kw ...string) *Request {
+	if len(kw) > 0 {
+		r.AddParam("keywords", strings.Join(kw, " "))
+	}
+	return r
 }
 
 func MarketFromHost(host string) string {

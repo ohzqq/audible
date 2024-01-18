@@ -10,6 +10,7 @@ import (
 	"github.com/ohzqq/audbk"
 	"github.com/ohzqq/audible"
 	"github.com/ohzqq/avtools/cue"
+	"github.com/ohzqq/cdb"
 	"github.com/spf13/cobra"
 )
 
@@ -46,12 +47,28 @@ func init() {
 }
 
 func processProducts(prods []audible.Product) {
+	var enc cdb.EncoderInit
+	switch flagExt {
+	case ".yaml":
+		enc = cdb.EncodeYAML
+	case ".json":
+		enc = cdb.EncodeJSON
+	case ".toml":
+		enc = cdb.EncodeTOML
+	}
 	for _, prod := range prods {
 		book := prod.ToBook()
 		println(book.Title)
-		name := casing.Snake(book.Title)
+		name := casing.Camel(book.Title)
 		if !noMeta {
-			book.Save(name+flagExt, true)
+			s := cdb.NewSerializer(&book, cdb.EditableOnly()).Encoder(enc)
+			mf, err := os.Create(name + flagExt)
+			if err != nil {
+				log.Fatal(err)
+			}
+			defer mf.Close()
+			s.WriteFile(name)
+
 			ff := audbk.NewFFMeta()
 			audbk.BookToFFMeta(ff, book.StringMap())
 			ffm, err := os.Create(name + ".ini")

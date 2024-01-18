@@ -24,18 +24,19 @@ var searchCmd = &cobra.Command{
 	Aliases: []string{"s"},
 	Args:    cobra.MinimumNArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
-		s := audible.NewSearch(args...)
+		prod := audible.Products()
+		prod.Keywords(args...)
 		if flagAuthor != "" {
-			s.Author(flagAuthor)
+			prod.Author(flagAuthor)
 		}
 		if flagNarrator != "" {
-			s.Narrator(flagNarrator)
+			prod.Narrator(flagNarrator)
 		}
 		if flagTitle != "" {
-			s.Title(flagTitle)
+			prod.Title(flagTitle)
 		}
 
-		r, err := audible.Products().Search(s)
+		r, err := prod.Get()
 		if err != nil {
 			log.Fatal(err)
 		}

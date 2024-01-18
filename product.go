@@ -3,7 +3,6 @@ package audible
 import (
 	"encoding/json"
 	"fmt"
-	"net/url"
 	"strings"
 	"time"
 
@@ -36,24 +35,12 @@ type Product struct {
 	ChapterInfo
 }
 
-type Params struct {
-	params url.Values
-}
-
 func Products() *ProductsRequest {
 	req := &ProductsRequest{Request: newRequest()}
 	req.SetParam("response_groups", responseGroups[products])
 	req.AppendPath(products)
 	req.NumResults(50)
 	return req
-}
-
-func NewSearch(kw ...string) *Params {
-	s := &Params{params: make(url.Values)}
-	if len(kw) > 0 {
-		s.params.Set("keywords", strings.Join(kw, " "))
-	}
-	return s
 }
 
 func (p *ProductsRequest) Search(s *Params) (*ProductsResponse, error) {
@@ -97,36 +84,6 @@ func (p *ProductsRequest) Get() (*ProductsResponse, error) {
 
 	return res, nil
 }
-
-func (s *Params) Title(kw ...string) *Params {
-	if len(kw) > 0 {
-		s.params.Set("title", strings.Join(kw, " "))
-	}
-	return s
-}
-
-func (s *Params) Author(kw ...string) *Params {
-	if len(kw) > 0 {
-		s.params.Set("author", strings.Join(kw, " "))
-	}
-	return s
-}
-
-func (s *Params) Narrator(kw ...string) *Params {
-	if len(kw) > 0 {
-		s.params.Set("narrator", strings.Join(kw, " "))
-	}
-	return s
-}
-
-func (s *Params) Encode() string {
-	return s.params.Encode()
-}
-
-func (s *Params) String() string {
-	return s.params.Encode()
-}
-
 func (p Product) ToBook() cdb.Book {
 	book := cdb.Book{
 		EditableFields: cdb.EditableFields{
