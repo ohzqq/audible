@@ -37,7 +37,7 @@ type Product struct {
 }
 
 func Products() *ProductsRequest {
-	req := &ProductsRequest{Request: newRequest()}
+	req := &ProductsRequest{Request: NewRequest()}
 	req.SetParam("response_groups", responseGroups[products])
 	req.AppendPath(products)
 	req.NumResults(50)
@@ -68,6 +68,10 @@ func (p *ProductsRequest) URL(u string) (*ProductsResponse, error) {
 	r.Product = Product{}
 
 	return r, nil
+}
+
+func (p *ProductsRequest) SearchParams() url.Values {
+	return GetSearchParams(p.Query.Query)
 }
 
 func (p *ProductsRequest) Get() (*ProductsResponse, error) {

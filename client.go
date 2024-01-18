@@ -50,7 +50,7 @@ type Response struct {
 	Product      Product   `json:"product"`
 }
 
-func newRequest() *Request {
+func NewRequest() *Request {
 	req := &Request{
 		Query:  New(),
 		search: make(url.Values),

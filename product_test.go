@@ -26,9 +26,10 @@ var searchTests = []searchTest{
 
 func TestNewSearch(t *testing.T) {
 	for _, test := range searchTests {
-		search := newRequest()
+		search := Products()
 		search.Keywords(test.kw...)
-		if u := search.EncodeSearch(); u != test.want {
+		params := search.SearchParams()
+		if u := params.Encode(); u != test.want {
 			t.Errorf("output %#v != expected %v", u, test.want)
 		}
 	}
@@ -53,7 +54,7 @@ var combinedQuery = "author=amy+lane&narrator=greg+tremblay&title=red+fish"
 
 func TestSearchParams(t *testing.T) {
 	for name, test := range paramTests {
-		search := newRequest()
+		search := Products()
 		switch name {
 		case "title":
 			search.Title(test.kw...)
@@ -62,14 +63,15 @@ func TestSearchParams(t *testing.T) {
 		case "narrator":
 			search.Narrator(test.kw...)
 		}
-		if u := search.EncodeSearch(); u != test.want {
+		params := search.SearchParams()
+		if u := params.Encode(); u != test.want {
 			t.Errorf("output %#v != expected %v", u, test.want)
 		}
 	}
 }
 
 func TestCombinedParams(t *testing.T) {
-	search := newRequest()
+	search := Products()
 	for name, test := range paramTests {
 		if name == "author" {
 			search.Author(test.kw...)
@@ -81,7 +83,8 @@ func TestCombinedParams(t *testing.T) {
 			search.Title(test.kw...)
 		}
 	}
-	if u := search.EncodeSearch(); u != combinedQuery {
+	params := search.SearchParams()
+	if u := params.Encode(); u != combinedQuery {
 		t.Errorf("output %#v != expected %v", u, combinedQuery)
 	}
 }
@@ -110,7 +113,7 @@ func TestGetFromURL(t *testing.T) {
 
 func TestSearchResults(t *testing.T) {
 	for name, test := range paramTests {
-		search := newRequest()
+		search := Products()
 		switch name {
 		case "title":
 			search.Title(test.kw...)
@@ -119,9 +122,8 @@ func TestSearchResults(t *testing.T) {
 		case "narrator":
 			search.Narrator(test.kw...)
 		}
-		p := Products()
-		p.NumResults(1)
-		_, err := p.Search(search.Query.Query)
+		search.NumResults(1)
+		_, err := search.Get()
 		if err != nil {
 			t.Error(err)
 		}
@@ -130,11 +132,10 @@ func TestSearchResults(t *testing.T) {
 	}
 
 	for _, test := range searchTests {
-		search := newRequest()
+		search := Products()
 		search.Keywords(test.kw...)
-		p := Products()
-		p.NumResults(1)
-		_, err := p.Search(search.Query.Query)
+		search.NumResults(1)
+		_, err := search.Get()
 		if err != nil {
 			t.Error(err)
 		}
