@@ -54,7 +54,7 @@ func processResults(res ...map[string]any) {
 	for _, r := range res {
 		if !noMeta {
 			println(r["title"].(string))
-			name := casing.Snake(r["title"].(string))
+			name := casing.Kebab(r["title"].(string))
 
 			err := writeMetaFile(r, name)
 			if err != nil {
